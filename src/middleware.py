@@ -1,10 +1,12 @@
 import base64
 from fastapi import Response
+from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.models import User
 from src.database import engine
+from src.security.encrypt_password import verify_password
 
 
 class BasicAuthMiddleware(BaseHTTPMiddleware):
@@ -28,12 +30,15 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
         email, password = decoded_credentials.split(":")
 
         with Session(engine) as session:
-            user = session.exec(
-                select(User).where(User.email == email, User.password == password)
-            ).first()
+            user = session.exec(select(User).where(User.email == email)).first()
             if not user:
-                return Response(
+                return JSONResponse(
                     status_code=401,
-                    headers={"WWW-Authenticate": 'Basic realm="Login Required"'},
+                    content={"Email not found"},
                 )
+            is_valid_password = verify_password(
+                plain_password=password, hashed_password=user.password
+            )
+            if not is_valid_password:
+                return JSONResponse(status_code=401, content={"Incorret Password"})
         return await call_next(request)
