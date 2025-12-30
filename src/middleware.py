@@ -1,18 +1,27 @@
 import base64
+from uuid import uuid4
+import redis
+from starlette.responses import Response
+from starlette.requests import Request
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from src.models import User
 from src.database import engine
 from src.security.encrypt_password import verify_password
 
 
+WHITELIST_PATHS = ["/signup", "/docs", "/openapi.json", "/redoc"]
+
+
+redis_instance = redis.Redis(host="localhost", port=6379, decode_responses=True)
+
+
 class BasicAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        whitelist_paths = ["/signup", "/docs", "/openapi.json", "/redoc"]
         path = request.url.path
-        if path in whitelist_paths:
+        if path in WHITELIST_PATHS:
             return await call_next(request)
 
         auth = request.headers.get("Authorization")
@@ -43,4 +52,14 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
                 return JSONResponse(
                     status_code=401, content={"detail": "Incorret Password"}
                 )
+        return await call_next(request)
+
+
+class SessionBasedAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        path = request.url.path
+
+        if path in WHITELIST_PATHS:
+            return await call_next(request)
+
         return await call_next(request)
