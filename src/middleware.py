@@ -12,7 +12,7 @@ from src.database import engine
 from src.security.encrypt_password import verify_password
 
 
-WHITELIST_PATHS = ["/signup", "/docs", "/openapi.json", "/redoc"]
+WHITELIST_PATHS = ["/auth/signup", "/docs", "/openapi.json", "/redoc"]
 
 
 redis_instance = redis.Redis(host="localhost", port=6379, decode_responses=True)
@@ -57,9 +57,20 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
 
 class SessionBasedAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        path = request.url.path
+        try:
+            path = request.url.path
 
-        if path in WHITELIST_PATHS:
-            return await call_next(request)
+            print("path", path)
+            if path in WHITELIST_PATHS:
+                return await call_next(request)
 
-        return await call_next(request)
+            user_session = request.cookies.get("ses_num")
+
+            if not user_session:
+                return JSONResponse(
+                    status_code=401, content={"detail": "Authorization missing."}
+                )
+
+            await call_next(request)
+        except Exception as e:
+            print(e)
