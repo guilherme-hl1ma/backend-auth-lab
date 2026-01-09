@@ -5,7 +5,7 @@ load_dotenv()
 
 from fastapi import FastAPI
 from src.middleware import BasicAuthMiddleware, SessionBasedAuthMiddleware
-from .routers import authentication, users
+from .routers import basic_auth, session_auth, jwt_auth, users
 
 
 app = FastAPI()
@@ -17,5 +17,7 @@ if auth_mode == "basic":
 elif auth_mode == "session":
     app.add_middleware(SessionBasedAuthMiddleware)
 
-app.include_router(authentication.router)
+app.include_router(basic_auth.router)
+app.include_router(session_auth.router)
+app.include_router(jwt_auth.router)
 app.include_router(users.router)
