@@ -45,8 +45,11 @@ def signup_session(user: User, session: SessionDep, request: Request):
         session.refresh(user)
 
         return response
-    except HTTPException as e:
-        raise e
+    except (Exception, HTTPException) as e:
+        print("[session_auth - signup_session] Error:", e)
+        return JSONResponse(
+            status_code=500, content={"detail": "Internal Server Error"}
+        )
 
 
 @router.post("/login")
@@ -80,8 +83,11 @@ def signin_session(user: User, session: SessionDep, request: Request):
         redis.set(name=f"session_id:{session_id}", value=email, ex=60 * 60 * 24)
 
         return response
-    except HTTPException as e:
-        raise e
+    except (Exception, HTTPException) as e:
+        print("[session_auth - signin_session] Error:", e)
+        return JSONResponse(
+            status_code=500, content={"detail": "Internal Server Error"}
+        )
 
 
 @router.post("/logout")

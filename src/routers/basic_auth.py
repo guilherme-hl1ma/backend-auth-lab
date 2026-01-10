@@ -30,7 +30,10 @@ def signup_basic_auth(user: User, session: SessionDep):
         session.add(user)
         session.commit()
         session.refresh(user)
-    except HTTPException as e:
-        raise e
+    except (Exception, HTTPException) as e:
+        print("[basic_auth - signup_basic_auth] Error:", e)
+        return JSONResponse(
+            status_code=500, content={"detail": "Internal Server Error"}
+        )
 
     return JSONResponse(status_code=201, content={"detail": "User registered."})

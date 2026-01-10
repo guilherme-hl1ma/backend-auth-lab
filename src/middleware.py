@@ -1,4 +1,6 @@
 import base64
+import os
+import jwt
 import redis
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
@@ -8,8 +10,9 @@ from src.models import User
 from src.database import engine
 from src.security.encrypt_password import verify_password
 
-AUTH_PATHS = ["/auth/signup", "/auth/login", "/auth/logout"]
 WHITELIST_PATHS = ["/docs", "/openapi.json", "/redoc"]
+SECRET_JWT = os.getenv("SECRET_JWT")
+JWT_ISSUER = os.getenv("JWT_ISSUER")
 
 
 redis_instance = redis.Redis(host="localhost", port=6379, decode_responses=True)
@@ -18,7 +21,8 @@ redis_instance = redis.Redis(host="localhost", port=6379, decode_responses=True)
 class BasicAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         path = request.url.path
-        if path in WHITELIST_PATHS or path in AUTH_PATHS:
+        if path in WHITELIST_PATHS or path.startswith("/auth"):
+            print(f"[BasicAuthMiddleware] Info - request url path: {path}")
             return await call_next(request)
 
         auth = request.headers.get("Authorization")
@@ -57,7 +61,8 @@ class SessionBasedAuthMiddleware(BaseHTTPMiddleware):
         try:
             path = request.url.path
 
-            if path in WHITELIST_PATHS or path in AUTH_PATHS:
+            if path in WHITELIST_PATHS or path.startswith("/auth"):
+                print(f"[SessionBasedAuthMiddleware] Info - request url path: {path}")
                 return await call_next(request)
 
             user_session = request.cookies.get("ses_num")
@@ -76,3 +81,26 @@ class SessionBasedAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         except Exception as e:
             print(e)
+
+
+class JWTAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        try:
+            path = request.url.path
+
+            if path in WHITELIST_PATHS or path.startswith("/auth"):
+                print(f"[JWTAuthMiddleware] Info - request url path: {path}")
+                return await call_next(request)
+
+            token = request.cookies.get("token")
+
+            if not token:
+                return JSONResponse(
+                    status_code=401, content={"detail": "Authorization missing."}
+                )
+
+            # token_decoded = jwt.decode(jwt=token, key=SECRET_JWT, algorithms=["HS256"])
+
+            return await call_next(request)
+        except Exception as e:
+            print("[JWTAuthMiddleware] Error:", e)
