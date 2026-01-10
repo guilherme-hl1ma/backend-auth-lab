@@ -14,7 +14,7 @@ router = APIRouter(prefix="/auth/session-based", tags=["Session-Based Authentica
 
 
 @router.post("/signup")
-def signup_session(user: User, session: SessionDep, request: Request):
+def signup_session(user: User, session: SessionDep):
     try:
         user_db = session.exec(select(User).where(User.email == user.email)).first()
         if user_db:
@@ -93,7 +93,6 @@ def signin_session(user: User, session: SessionDep, request: Request):
 @router.post("/logout")
 def signout_session(request: Request):
     session_id = request.cookies.get("ses_num")
-    print("Session: ", session_id)
 
     response = JSONResponse(status_code=200, content={"detail": "OK"})
 
