@@ -1,8 +1,8 @@
 import base64
 import os
-from fastapi import Depends, HTTPException, Cookie, Header, Request
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import HTTPBasic
 import jwt
 from sqlmodel import Session, select
 
