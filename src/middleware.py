@@ -80,7 +80,10 @@ class SessionBasedAuthMiddleware(BaseHTTPMiddleware):
 
             return await call_next(request)
         except Exception as e:
-            print(e)
+            print("[SessionBasedAuthMiddleware] Error:", e)
+            return JSONResponse(
+                status_code=500, content={"detail": "Internal Server Error"}
+            )
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
@@ -99,8 +102,25 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
                     status_code=401, content={"detail": "Authorization missing."}
                 )
 
-            # token_decoded = jwt.decode(jwt=token, key=SECRET_JWT, algorithms=["HS256"])
+            token_decoded: dict = jwt.decode(
+                jwt=token, key=SECRET_JWT, algorithms=["HS256"], issuer=JWT_ISSUER
+            )
+
+            email = token_decoded.get("sub", None)
+            if email is None:
+                print("[JWTAuthMiddleware] Error: email cannot be None")
+                return JSONResponse(
+                    status_code=401, content={"detail": "Invalid credential"}
+                )
 
             return await call_next(request)
+        except (jwt.ExpiredSignatureError, jwt.InvalidIssuerError) as e:
+            print("[JWTAuthMiddleware] Error:", e)
+            return JSONResponse(
+                status_code=401, content={"detail": "Invalid credential"}
+            )
         except Exception as e:
             print("[JWTAuthMiddleware] Error:", e)
+            return JSONResponse(
+                status_code=500, content={"detail": "Internal Server Error"}
+            )
