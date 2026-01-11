@@ -6,10 +6,9 @@ from fastapi.security import HTTPBasic
 import jwt
 from sqlmodel import Session, select
 
-from src.config.redis_instance import RedisSingleton
-from src.database import engine
-from src.models import User
-from src.security.encrypt_password import verify_password
+from models import User
+from config import RedisSingleton, engine
+from .encrypt_password import verify_password
 
 security_basic = HTTPBasic()
 

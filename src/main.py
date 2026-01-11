@@ -1,7 +1,10 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from fastapi import FastAPI
-from .routers import basic_auth, session_auth, jwt_auth, users
+from routers import basic_auth, session_auth, jwt_auth, users
 
 
 app = FastAPI()

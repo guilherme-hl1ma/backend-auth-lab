@@ -2,8 +2,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select
 
-from src import SessionDep, User
-from src.security import get_auth_strategy
+from config import SessionDep
+from models import User
+from security import get_auth_strategy
 
 
 router = APIRouter(prefix="/users", tags=["Users"])

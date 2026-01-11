@@ -1,6 +1,6 @@
 import os
 
-from src.security.auth_strategies import (
+from .auth_strategies import (
     get_user_basic_auth,
     get_user_jwt_auth,
     get_user_session_based_auth,

@@ -4,8 +4,9 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 import jwt
 from sqlmodel import select
-from src import SessionDep, User
-from src.security import hash_password, verify_password
+from config import SessionDep
+from models import User
+from security import hash_password, verify_password
 
 router = APIRouter(prefix="/auth/jwt", tags=["JWT Authentication"])
 

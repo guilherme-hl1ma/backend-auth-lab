@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from sqlmodel import select
 
-from src.config import RedisSingleton
-from src import SessionDep, User
-from src.security import hash_password
+from config import RedisSingleton, SessionDep
+from models import User
+from security import hash_password
 
 
 redis = RedisSingleton().getInstance()
